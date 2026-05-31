@@ -22,6 +22,13 @@ export default function MediaBuyerReportPage() {
   const [campaignName, setCampaignName] = useState('');
   const [currentSpend, setCurrentSpend] = useState('');
   const [dailyStatus, setDailyStatus] = useState('');
+  const [impressions, setImpressions] = useState('');
+  const [clicks, setClicks] = useState('');
+  const [conversions, setConversions] = useState('');
+  const [ctr, setCtr] = useState('');
+  const [cpc, setCpc] = useState('');
+  const [roas, setRoas] = useState('');
+  const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -78,9 +85,24 @@ export default function MediaBuyerReportPage() {
           current_spend: parseFloat(currentSpend),
           daily_status: dailyStatus.trim(),
           report_date: new Date().toISOString().split('T')[0],
+          impressions: impressions ? parseInt(impressions) : null,
+          clicks: clicks ? parseInt(clicks) : null,
+          conversions: conversions ? parseInt(conversions) : null,
+          ctr: ctr ? parseFloat(ctr) : null,
+          cpc: cpc ? parseFloat(cpc) : null,
+          roas: roas ? parseFloat(roas) : null,
+          notes: notes.trim() || null,
         });
 
       if (insertError) throw insertError;
+
+      await supabase.from('notifications').insert({
+        user_id: '1',
+        title: '📊 New Campaign Report',
+        message: `Hadeer submitted a report for "${campaignName}" - Spend: $${currentSpend}`,
+        type: 'info',
+        link: '/admin/reports',
+      });
 
       // Log activity
       await supabase.from('activity_logs').insert({
@@ -96,6 +118,13 @@ export default function MediaBuyerReportPage() {
       setCampaignName('');
       setCurrentSpend('');
       setDailyStatus('');
+      setImpressions('');
+      setClicks('');
+      setConversions('');
+      setCtr('');
+      setCpc('');
+      setRoas('');
+      setNotes('');
       loadReports();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to submit report');
@@ -186,6 +215,41 @@ export default function MediaBuyerReportPage() {
               <p className="text-xs text-slate-500 mt-1">
                 {dailyStatus.length}/1000 characters
               </p>
+            </div>
+
+            {/* KPI Fields */}
+            <div className="border-t border-slate-200 pt-4">
+              <p className="text-sm font-semibold text-slate-700 mb-3">KPI Metrics (Optional)</p>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Impressions</label>
+                  <input type="number" value={impressions} onChange={(e) => setImpressions(e.target.value)} placeholder="0" className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Clicks</label>
+                  <input type="number" value={clicks} onChange={(e) => setClicks(e.target.value)} placeholder="0" className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Conversions</label>
+                  <input type="number" value={conversions} onChange={(e) => setConversions(e.target.value)} placeholder="0" className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">CTR (%)</label>
+                  <input type="number" step="0.01" value={ctr} onChange={(e) => setCtr(e.target.value)} placeholder="0.00" className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">CPC ($)</label>
+                  <input type="number" step="0.01" value={cpc} onChange={(e) => setCpc(e.target.value)} placeholder="0.00" className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">ROAS</label>
+                  <input type="number" step="0.01" value={roas} onChange={(e) => setRoas(e.target.value)} placeholder="0.00" className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-blue-500" />
+                </div>
+              </div>
+              <div className="mt-3">
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Additional Notes</label>
+                <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Any additional notes..." className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-blue-500" />
+              </div>
             </div>
 
             {/* Messages */}

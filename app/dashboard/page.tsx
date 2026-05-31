@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { CreatorSubmission } from '@/components/creator-submission';
 import { ManagerApproval } from '@/components/manager-approval';
 import { MediaBuyerDashboard } from '@/components/media-buyer-dashboard';
+import { MyTasks } from '@/components/my-tasks';
 
 export default function DashboardPage() {
   const { user, loading, logout } = useAuth();
@@ -53,9 +54,12 @@ export default function DashboardPage() {
 
   const navItems = [
     { id: 'submission', label: 'Submit Creative', roles: ['Creator', 'Admin'] },
+    { id: 'myTasks', label: 'My Tasks', roles: ['Creator', 'MediaBuyer'] },
     { id: 'approval', label: 'Approve Queue', roles: ['Admin'] },
     { id: 'mediaBuyer', label: 'My Queue', roles: ['MediaBuyer', 'Admin'], href: '/media-buyer/dashboard' },
-    { id: 'reports', label: 'Submit Report', roles: ['MediaBuyer', 'Admin'], href: '/media-buyer/report' },
+    { id: 'reports', label: 'Submit Report', roles: ['MediaBuyer'], href: '/media-buyer/report' },
+    { id: 'adminReports', label: '📊 Reports', roles: ['Admin'], href: '/admin/reports' },
+    { id: 'tasks', label: '📋 Tasks', roles: ['Admin'], href: '/admin/tasks' },
     { id: 'activityLog', label: 'Activity Log', roles: ['Admin'], href: '/admin/activity-log' },
   ];
 
@@ -133,6 +137,8 @@ export default function DashboardPage() {
         )}
 
         {activeTab === 'approval' && <ManagerApproval />}
+
+        {activeTab === 'myTasks' && <MyTasks />}
 
         {activeTab === 'mediaBuyer' && <MediaBuyerDashboard />}
       </main>
