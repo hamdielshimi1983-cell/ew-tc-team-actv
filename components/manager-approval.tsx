@@ -12,7 +12,6 @@ interface CreativePost {
   status: string;
   manager_comment: string | null;
   created_at: string;
-  users: { id: string; name: string; email: string; role: string };
   file_versions?: Array<{
     id: string;
     file_url: string;
@@ -42,7 +41,6 @@ export function ManagerApproval() {
         .select(
           `
           *,
-          users:created_by(id, name, email, role),
           file_versions(id, file_url, version_number, created_at)
         `
         )
@@ -156,7 +154,7 @@ export function ManagerApproval() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <p className="font-semibold text-slate-900">
-                      {post.users.name}
+                      {post.created_by}
                     </p>
                     <p className="text-sm text-slate-600 mt-1 line-clamp-2">
                       {post.caption}
