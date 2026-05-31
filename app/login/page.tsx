@@ -5,10 +5,10 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 
 const MOCK_USERS = [
-  { name: 'Hamdi', email: 'sokare5564@nuitx.com', pin: '1234' },
-  { name: 'Hadeer', email: 'hadeer@ew-tc.com', pin: '2345' },
-  { name: 'Bakr', email: 'bakr@ew-tc.com', pin: '3456' },
-  { name: 'Asmaa', email: 'asmaa@ew-tc.com', pin: '4567' },
+  { name: 'Hamdi', email: 'sokare5564@nuitx.com' },
+  { name: 'Hadeer', email: 'hadeer@ew-tc.com' },
+  { name: 'Bakr', email: 'bakr@ew-tc.com' },
+  { name: 'Asmaa', email: 'asmaa@ew-tc.com' },
 ];
 
 export default function LoginPage() {
@@ -121,19 +121,10 @@ export default function LoginPage() {
           </button>
         </div>
 
-        {/* Demo Info */}
         <div className="mt-8 pt-6 border-t border-slate-200">
-          <p className="text-xs text-slate-500 text-center mb-3">
-            Demo Credentials (for testing):
+          <p className="text-xs text-slate-500 text-center">
+            PINs are available from an administrator only.
           </p>
-          <div className="space-y-2 text-xs">
-            {MOCK_USERS.map((user) => (
-              <div key={user.email} className="flex justify-between text-slate-600">
-                <span>{user.name}:</span>
-                <span className="font-mono">{user.pin}</span>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </div>

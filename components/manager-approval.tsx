@@ -174,26 +174,29 @@ export function ManagerApproval() {
                   {/* Media Preview */}
                   {post.media_url && (
                     <div>
-                      <p className="text-xs font-semibold text-slate-600 mb-2">
-                        Media Preview:
-                      </p>
-                      {post.media_url.includes('mp4') ||
-                      post.media_url.includes('webm') ? (
-                        <video
-                          src={post.media_url}
-                          controls
-                          className="w-full max-h-64 rounded-lg bg-black"
-                        />
-                      ) : (
-                        <img
-                          src={post.media_url}
-                          alt="Preview"
-                          className="w-full max-h-64 object-cover rounded-lg"
-                        />
-                      )}
+                      <p className="text-xs font-semibold text-slate-600 mb-2">Media Preview:</p>
+                      <div className="relative">
+                        {post.media_url.includes('mp4') || post.media_url.includes('webm') || post.media_url.includes('quicktime') ? (
+                          <video src={post.media_url} controls className="w-full rounded-lg bg-black" />
+                        ) : (
+                          <>
+                            <img
+                              src={post.media_url}
+                              alt="Preview"
+                              className="w-full max-h-64 object-cover rounded-lg cursor-pointer"
+                              onClick={() => window.open(post.media_url, '_blank')}
+                            />
+                            <button
+                              onClick={() => window.open(post.media_url, '_blank')}
+                              className="mt-2 w-full text-xs text-blue-600 hover:text-blue-800 font-semibold underline text-center"
+                            >
+                              🔍 Click to view full image
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   )}
-
                   {/* Caption */}
                   <div>
                     <p className="text-xs font-semibold text-slate-600 mb-1">
