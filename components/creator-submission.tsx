@@ -29,8 +29,8 @@ export function CreatorSubmission({ onSubmitSuccess }: CreatorSubmissionProps) {
   const supabase = useSupabase();
   const [caption, setCaption] = useState('');
   const [internalNote, setInternalNote] = useState('');
-  const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string>('');
+  const [files, setFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -38,25 +38,28 @@ export function CreatorSubmission({ onSubmitSuccess }: CreatorSubmissionProps) {
   const [mySubmissions, setMySubmissions] = useState<CreativePost[]>([]);
   const [showMySubmissions, setShowMySubmissions] = useState(false);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-      };
-      reader.readAsDataURL(selectedFile);
-      setError('');
-    }
-  };
+const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const selectedFiles = Array.from(e.target.files || []);
+  if (selectedFiles.length > 0) {
+    setFiles(selectedFiles);
+    const readers = selectedFiles.map(file => {
+      return new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
+    });
+    Promise.all(readers).then(setPreviews);
+    setError('');
+  }
+};
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
 
-    if (!caption.trim() || !file || !user) {
+    if (!caption.trim() || files.length === 0 || !user) {
       setError('Please fill in all required fields and select a file');
       return;
     }
@@ -80,19 +83,21 @@ export function CreatorSubmission({ onSubmitSuccess }: CreatorSubmissionProps) {
 
       if (postError) throw postError;
 
-      // Upload file
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('postId', postData.id);
-      formData.append('userId', user.id);
+      // Upload all files
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('postId', postData.id);
+        formData.append('userId', user.id);
 
-      const uploadRes = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
+        const uploadRes = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
 
-      if (!uploadRes.ok) {
-        throw new Error('File upload failed');
+        if (!uploadRes.ok) {
+          throw new Error(`File upload failed for ${file.name}`);
+        }
       }
 
       // Log activity for submission
@@ -102,15 +107,16 @@ export function CreatorSubmission({ onSubmitSuccess }: CreatorSubmissionProps) {
         post_id: postData.id,
         details: {
           caption: caption.substring(0, 100),
-          file_name: file.name,
+          file_count: files.length,
+          file_names: files.map(f => f.name).join(', '),
         },
       });
 
       setSuccess('Creative submitted successfully!');
       setCaption('');
       setInternalNote('');
-      setFile(null);
-      setPreview('');
+      setFiles([]);
+      setPreviews([]);
       if (fileInputRef.current) fileInputRef.current.value = '';
       
       onSubmitSuccess?.();
@@ -184,6 +190,7 @@ export function CreatorSubmission({ onSubmitSuccess }: CreatorSubmissionProps) {
               ref={fileInputRef}
               type="file"
               accept="image/*,video/*"
+multiple
               onChange={handleFileSelect}
               className="hidden"
             />
@@ -195,32 +202,32 @@ export function CreatorSubmission({ onSubmitSuccess }: CreatorSubmissionProps) {
               <div className="text-center">
                 <div className="text-2xl mb-2">📁</div>
                 <p className="font-semibold text-slate-900">
-                  {file ? file.name : 'Click to select media'}
+                  {files.length > 0 ? `${files.length} file(s) selected` : 'Click to select media (multiple allowed)'}
                 </p>
-                {file && (
+                {files.length > 0 && (
                   <p className="text-xs text-slate-600 mt-1">
-                    {(file.size / 1024 / 1024).toFixed(2)} MB
+                    {files.length} file(s) — {(files.reduce((a,f) => a + f.size, 0) / 1024 / 1024).toFixed(2)} MB total
                   </p>
                 )}
               </div>
             </button>
 
-            {preview && (
+            {previews.length > 0 && (
               <div className="mt-4">
-                <p className="text-xs font-semibold text-slate-600 mb-2">
-                  Preview:
-                </p>
-                {file?.type.startsWith('image/') ? (
-                  <img
-                    src={preview}
-                    alt="Preview"
-                    className="w-full max-h-64 object-cover rounded-lg"
-                  />
-                ) : (
-                  <div className="bg-slate-100 rounded-lg p-4 text-center text-slate-600">
-                    Video: {file?.name}
-                  </div>
-                )}
+                <p className="text-xs font-semibold text-slate-600 mb-2">Preview ({previews.length} files):</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {previews.map((preview, i) => (
+                    <div key={i}>
+                      {files[i]?.type.startsWith('image/') ? (
+                        <img src={preview} alt={`Preview ${i+1}`} className="w-full h-32 object-cover rounded-lg" />
+                      ) : (
+                        <div className="bg-slate-100 rounded-lg p-4 text-center text-slate-600 h-32 flex items-center justify-center">
+                          🎬 {files[i]?.name}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -277,9 +284,9 @@ export function CreatorSubmission({ onSubmitSuccess }: CreatorSubmissionProps) {
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={loading || !caption.trim() || !file}
+            disabled={loading || !caption.trim() || files.length === 0}
             className={`w-full py-3 px-4 rounded-lg font-semibold transition-all ${
-              loading || !caption.trim() || !file
+              loading || !caption.trim() || files.length === 0
                 ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
                 : 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95'
             }`}
@@ -307,7 +314,7 @@ export function CreatorSubmission({ onSubmitSuccess }: CreatorSubmissionProps) {
                 <div
                   key={post.id}
                   className="bg-white rounded-lg border border-slate-200 p-4"
-                >
+                >	
                   <div className="flex items-start justify-between mb-3">
                     <div>
                       <p className="font-semibold text-slate-900 line-clamp-2">
