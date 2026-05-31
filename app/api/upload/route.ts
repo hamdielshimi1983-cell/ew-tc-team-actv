@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     // Upload to Supabase Storage
     const supabase = getSupabaseClient();
     const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('creative-uploads')
+      .from('creatives')
       .upload(filename, file);
 
     if (uploadError) {
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     // Get public URL
     const { data: urlData } = supabase.storage
-      .from('creative-uploads')
+      .from('creatives')
       .getPublicUrl(filename);
 
     // Get version number
